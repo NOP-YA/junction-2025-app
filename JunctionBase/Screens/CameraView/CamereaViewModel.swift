@@ -9,6 +9,7 @@ import Foundation
 import AVFoundation
 import SwiftUI
 import CoreMotion
+import UserNotifications
 
 /// ViewModel that manages a bare-metal camera session (no default system UI)
 @MainActor
@@ -32,17 +33,46 @@ final class CameraViewModel: NSObject, ObservableObject {
     private var baseYaw: Double = 0
     private var hasMovedRight = false
     
-    // MARK: - Lifecycle
-    deinit {
-        Task { @MainActor in
-            await stop()
-            stopMotionTracking()
+    // MARK: - Local Notification Helpers
+    private func requestNotificationAuthorization() {
+        let center = UNUserNotificationCenter.current()
+        // Define a basic category so tapping can relaunch the app (future: handle action to reopen camera)
+        let category = UNNotificationCategory(
+            identifier: "OPEN_CAMERA",
+            actions: [],
+            intentIdentifiers: [],
+            options: [.customDismissAction]
+        )
+        center.setNotificationCategories([category])
+
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if let error = error {
+                Task { @MainActor in self.errorMessage = error.localizedDescription }
+                return
+            }
+            // 권한 거부 시에도 앱 크래시는 방지
         }
+    }
+
+    private func sendCaptureDoneNotification() {
+        let content = UNMutableNotificationContent()
+        content.title = "촬영 완료"
+        content.body = "화재 상황 사진이 저장되었습니다. 필요시 추가 촬영을 진행하세요."
+        content.sound = .default
+        content.categoryIdentifier = "OPEN_CAMERA"
+
+        // 즉시 발송 (약간의 지연을 줘서 UI 전환과 겹치지 않게)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.5, repeats: false)
+        let request = UNNotificationRequest(identifier: "capture_done_\(UUID().uuidString)", content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request)
     }
 
     // MARK: - Permission & configuration
     func requestAccessAndConfigure() {
         Task {
+            // 알림 권한 및 카테고리 등록
+            requestNotificationAuthorization()
+            
             switch AVCaptureDevice.authorizationStatus(for: .video) {
             case .authorized:
                 isAuthorized = true
@@ -239,6 +269,9 @@ extension CameraViewModel: AVCapturePhotoCaptureDelegate {
             
             self.lastPhotoData = photo.fileDataRepresentation()
             self.errorMessage = nil
+            
+            // 촬영 완료 알림 발송
+            self.sendCaptureDoneNotification()
         }
     }
 }
