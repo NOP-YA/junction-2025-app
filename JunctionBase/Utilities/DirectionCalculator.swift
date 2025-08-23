@@ -40,7 +40,7 @@ struct DirectionCalculator {
     }
     
     /// 남쪽 방향의 상대적 위치를 계산합니다.
-    static func southPosition(userHeading: Double, distance: Double = 90.0) -> CGPoint {
+    static func southPosition(userHeading: Double, distance: Double = 200.0) -> CGPoint {
         return relativePosition(userHeading: userHeading, targetDirection: 180.0, distance: distance)
     }
     

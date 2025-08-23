@@ -14,15 +14,15 @@ public enum RiskLevel: String, CaseIterable {
     case evacuationPreparation = "대피 준비"  
     case situationMonitoring = "상황 주시"
     
-    /// 위험도 점수에 따른 레벨 결정
+    /// 위험도 점수에 따른 레벨 결정 (KFSCategory 기준)
     public static func from(riskScore: Double) -> RiskLevel {
         switch riskScore {
-        case 75...100:
-            return .immediateEvacuation
-        case 40..<75:
-            return .evacuationPreparation
-        case 0..<40:
-            return .situationMonitoring
+        case 86...100:
+            return .immediateEvacuation  // 매우높음 → 즉시 대피
+        case 51..<86:
+            return .evacuationPreparation  // 다소높음, 높음 → 대피 준비
+        case 0..<51:
+            return .situationMonitoring  // 낮음 → 상황 주시
         default:
             return .situationMonitoring
         }
