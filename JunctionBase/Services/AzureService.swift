@@ -104,3 +104,67 @@ private extension Encodable {
         return dict
     }
 }
+
+// MARK: - Provider Factory (optional reuse)
+func makeOpenAIProvider() -> MoyaProvider<OpenAIService> {
+    let logger = NetworkLoggerPlugin(configuration: .init(logOptions: .verbose))
+    let keyPlugin = APIKeyPlugin { Secrets.azureOpenAIKey }
+    return MoyaProvider<OpenAIService>(plugins: [keyPlugin, logger])
+}
+
+// MARK: - AzureAIService Wrapper
+final class AzureAIService {
+    private let provider: MoyaProvider<OpenAIService>
+
+    init() {
+        self.provider = makeOpenAIProvider()
+    }
+
+    /// Sends a simple chat request using the current deployment
+    /// - Parameters:
+    ///   - userPrompt: user's input
+    ///   - maxTokens: default 4096
+    ///   - temperature: default 1.0
+    ///   - topP: default 1.0
+    ///   - model: kept for compatibility with current `ChatRequest`
+    ///   - completion: returns content string or error
+    public func sendChat(userPrompt: String,
+                         maxTokens: Int = 4096,
+                         temperature: Double = 1.0,
+                         topP: Double = 1.0,
+                         model: String = "gpt-4o",
+                         completion: @escaping (Result<String, Error>) -> Void) {
+
+        let messages = [
+            ChatMessage(role: "system", content: "You are a helpful assistant."),
+            ChatMessage(role: "user", content: userPrompt)
+        ]
+        let body = ChatRequest(
+            messages: messages,
+            max_tokens: maxTokens,
+            temperature: temperature,
+            top_p: topP,
+            model: model
+        )
+
+        provider.request(.chat(request: body)) { result in
+            switch result {
+            case .success(let response):
+                do {
+                    let decoded = try JSONDecoder().decode(ChatResponse.self, from: response.data)
+                    if let text = decoded.choices.first?.message.content, !text.isEmpty {
+                        completion(.success(text))
+                    } else {
+                        completion(.failure(NSError(domain: "AzureAIService",
+                                                    code: -1,
+                                                    userInfo: [NSLocalizedDescriptionKey: "No response content found"])) )
+                    }
+                } catch {
+                    completion(.failure(error))
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
+}

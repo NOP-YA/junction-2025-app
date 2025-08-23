@@ -24,4 +24,5 @@ public extension Color {
 
     static let subFontColor = Color(hex: "9A9FA5")
     static let subFontColorAlt = Color(hex: "888A90")
+    static let radarGray = Color(hex: "4D5152")
 }
