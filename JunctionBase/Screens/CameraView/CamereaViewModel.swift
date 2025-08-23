@@ -9,6 +9,7 @@ import Foundation
 import AVFoundation
 import SwiftUI
 import CoreMotion
+import UserNotifications
 
 /// ViewModel that manages a bare-metal camera session (no default system UI)
 @MainActor
@@ -61,6 +62,11 @@ final class CameraViewModel: NSObject, ObservableObject {
         
         // 모션 트래킹 시작
         startMotionTracking()
+        
+        // 알림 설정을 즉시 요청
+        Task {
+            await ensureNotificationSetup()
+        }
     }
 
     private func configureSession() async {
@@ -146,6 +152,131 @@ final class CameraViewModel: NSObject, ObservableObject {
             }
         }
     }
+    
+    /// Ensure local notification setup (categories + permission). Safe to call multiple times.
+    func ensureNotificationSetup() async {
+        let center = UNUserNotificationCenter.current()
+        
+        // 1. 권한 먼저 요청
+        do {
+            let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+            print("🔔 알림 권한 요청 결과: \(granted)")
+            
+            if !granted {
+                print("🔔 사용자가 알림 권한을 거부했습니다")
+                return
+            }
+            
+            // 2. 현재 설정 확인
+            let settings = await center.notificationSettings()
+            print("🔔 알림 설정 상태:")
+            print("  - 권한: \(settings.authorizationStatus.rawValue)")
+            print("  - 알림: \(settings.alertSetting.rawValue)")
+            print("  - 사운드: \(settings.soundSetting.rawValue)")
+            print("  - 배지: \(settings.badgeSetting.rawValue)")
+            
+            // 3. 카테고리 설정
+            let category = UNNotificationCategory(
+                identifier: "FIRE_ALERT",
+                actions: [],
+                intentIdentifiers: [],
+                options: [.customDismissAction]
+            )
+            center.setNotificationCategories([category])
+            
+        } catch {
+            print("🔔 알림 권한 요청 에러: \(error)")
+        }
+    }
+
+    /// DEBUG-only: Schedules a very simple test local notification for verification.
+    func debugScheduleTestNotification() {
+        Task {
+            let center = UNUserNotificationCenter.current()
+            let settings = await center.notificationSettings()
+            guard settings.authorizationStatus == .authorized else {
+                print("🔔 알림 권한이 없습니다. 설정을 확인해주세요.")
+                return
+            }
+
+            let content = UNMutableNotificationContent()
+            // content.title = "🔥 테스트 알림"
+            // content.body = "이 알림이 보이면 설정이 정상입니다! (즉시 발송)"
+            content.sound = .default
+            content.categoryIdentifier = "FIRE_ALERT"
+            content.badge = 1
+            content.threadIdentifier = "fire.alert"
+            if #available(iOS 15.0, *) {
+                content.interruptionLevel = .timeSensitive
+                if #available(iOS 16.0, *) {
+                    content.relevanceScore = 1.0
+                }
+            }
+
+            // 즉시 발송: trigger = nil
+            let request = UNNotificationRequest(
+                identifier: "debug_immediate_\(Date().timeIntervalSince1970)",
+                content: content,
+                trigger: nil
+            )
+
+            do {
+                try await center.add(request)
+                print("🔔 즉시 테스트 알림이 예약되었습니다 (id=\(request.identifier))")
+            } catch {
+                print("🔔 즉시 테스트 알림 예약 실패: \(error)")
+            }
+        }
+    }
+    
+    /// Sends a local notification for risk level analysis (immediate, time-sensitive)
+    func sendNavigationNotification(for riskLevel: RiskLevel) {
+        Task {
+            let center = UNUserNotificationCenter.current()
+            let settings = await center.notificationSettings()
+            guard settings.authorizationStatus == .authorized else {
+                print("🔔 알림 권한이 없어서 위험도 알림을 보낼 수 없습니다")
+                return
+            }
+
+            let content = UNMutableNotificationContent()
+            content.title = "🔥 위험도 분석 완료"
+            switch riskLevel {
+            case .situationMonitoring:
+                content.body = "[정보] 금일 20:35 포항시 북구 선착로 78 인근 화재 발생. 인근 지역 산불 발생. '불 보소' 앱으로 주변 상황을 제보하여 안전을 함께 지켜주세요. 최신 상황을 계속 주시 바랍니다."
+                content.badge = 1
+            case .evacuationPreparation:
+                content.body = "[경보] 금일 20:35 포항시 북구 선착로 78 인근 화재 발생. 인근 산불 확산 중. 대피를 준비하십시오. 창문 등 안전한 곳에서 보이는 불길을 '불 보소' 앱으로 제보해주시면 진화에 큰 도움이 됩니다."
+                content.badge = 2
+            case .immediateEvacuation:
+                content.body = "[긴급] 금일 20:35 포항시 북구 선착로 78 인근 화재 발생. 즉시 대피하십시오! 생명에 위협이 되는 산불이 접근 중입니다."
+                content.badge = 3
+            }
+            content.categoryIdentifier = "FIRE_ALERT"
+            content.sound = .default
+            content.threadIdentifier = "fire.alert"
+            if #available(iOS 15.0, *) {
+                content.interruptionLevel = .timeSensitive
+                if #available(iOS 16.0, *) {
+                    content.relevanceScore = 1.0
+                }
+            }
+
+            // 즉시 발송: trigger = nil
+            let request = UNNotificationRequest(
+                identifier: "risk_\(riskLevel.rawValue)_\(Date().timeIntervalSince1970)",
+                content: content,
+                trigger: nil
+            )
+
+            do {
+                try await center.add(request)
+                print("🔔 위험도 즉시 알림 전송 완료: \(riskLevel) (id=\(request.identifier))")
+            } catch {
+                print("🔔 위험도 알림 전송 실패: \(error)")
+            }
+        }
+    }
 
     // MARK: - Capture
     func capturePhoto() {
@@ -225,6 +356,8 @@ final class CameraViewModel: NSObject, ObservableObject {
     // Computed property to expose session for SwiftUI
     var captureSession: AVCaptureSession { session }
 }
+
+// RiskLevel enum은 이미 프로젝트에 정의되어 있음
 
 // MARK: - Photo delegate
 extension CameraViewModel: AVCapturePhotoCaptureDelegate {

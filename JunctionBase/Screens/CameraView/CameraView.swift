@@ -1,3 +1,10 @@
+extension CameraViewModel {
+    /// Synchronous wrapper to stop the camera session without requiring `await` at call sites
+    func stopSafely() {
+        Task { await self.stop() }
+    }
+}
+
 //
 //  FireCameraView.swift
 //  UI
@@ -68,15 +75,22 @@ struct FireCameraView: View {
         }
         .onAppear {
             cameraViewModel.requestAccessAndConfigure()
-            // 위치 권한 요청 및 위험도 계산 준비
             homeViewModel.locationManager.requestLocationPermission()
+
+            // 🔔 Delegate 재설정 및 알림 셋업
+            UNUserNotificationCenter.current().delegate = NotificationBridge.shared
+            Task { await cameraViewModel.ensureNotificationSetup() }
+
+            #if DEBUG
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                cameraViewModel.debugScheduleTestNotification()
+            }
+            #endif
         }
         .onDisappear {
-            Task {
-                await cameraViewModel.stop()
-            }
+            cameraViewModel.stopSafely()
         }
-        .onChange(of: cameraViewModel.lastPhotoData) { _, newData in
+        .onChange(of: cameraViewModel.lastPhotoData) { newData in
             if let data = newData,
                let image = UIImage(data: data) {
                 capturedImage = image
@@ -109,6 +123,8 @@ struct FireCameraView: View {
             
             // 적절한 뷰로 라우팅
             self.navigateToRiskView = true
+            
+            self.cameraViewModel.sendNavigationNotification(for: self.calculatedRiskLevel)
         }
     }
     
