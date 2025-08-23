@@ -11,7 +11,7 @@ import SwiftUI
 struct JunctionBaseApp: App {
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            EvacuationLocationView()
                 .environmentObject(PathModel())
         }
     }
