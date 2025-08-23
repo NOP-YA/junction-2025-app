@@ -25,6 +25,10 @@ final class HomeViewModel: ObservableObject {
     private let firmsService = FirmsService()
     let locationManager = LocationManager() // public으로 변경 (테스트용 접근을 위해)
     let deviceHeadingManager = DeviceHeadingManager() // CoreMotion 기반 기기 방향 매니저
+    
+    // 각도 정규화를 위한 이전 헤딩 값 저장
+    private var previousHeading: Double = 0.0
+    private var normalizedHeading: Double = 0.0
 
     init(azureAIService: AzureAIService = AzureAIService()) {
         self.azureAIService = azureAIService
@@ -37,7 +41,8 @@ final class HomeViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newHeading in
                 guard let self = self else { return }
-                self.userHeading = newHeading
+                // 각도 정규화 적용하여 부드러운 회전 보장
+                self.userHeading = self.normalizeHeadingForAnimation(newHeading)
             }
             .store(in: &cancellables)
         
@@ -52,6 +57,34 @@ final class HomeViewModel: ObservableObject {
     }
     
     private var cancellables = Set<AnyCancellable>()
+
+    /// 애니메이션을 위한 각도 정규화 함수
+    /// 0-360도 경계를 넘나들 때 부드러운 회전을 위해 연속적인 값으로 변환
+    private func normalizeHeadingForAnimation(_ newHeading: Double) -> Double {
+        // 첫 번째 호출인 경우
+        if previousHeading == 0.0 && normalizedHeading == 0.0 {
+            previousHeading = newHeading
+            normalizedHeading = newHeading
+            return newHeading
+        }
+        
+        // 새로운 각도와 이전 각도의 차이 계산
+        var angleDifference = newHeading - previousHeading
+        
+        // 각도 차이를 -180 ~ +180 범위로 정규화 (최단 경로)
+        while angleDifference > 180.0 {
+            angleDifference -= 360.0
+        }
+        while angleDifference < -180.0 {
+            angleDifference += 360.0
+        }
+        
+        // 정규화된 헤딩 업데이트 (연속적인 값)
+        normalizedHeading += angleDifference
+        previousHeading = newHeading
+        
+        return normalizedHeading
+    }
 
     func sendChatRequest() {
         let trimmed = userPrompt.trimmingCharacters(in: .whitespacesAndNewlines)

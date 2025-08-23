@@ -11,10 +11,10 @@ import SwiftUI
 struct HouseIconView: View {
     var body: some View {
         Image(systemName: "house.fill")
-            .font(.system(size: 28))
+            .font(.system(size: 40))
             .fontWeight(.bold)
             .foregroundColor(.white)
-            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+            .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 2)
     }
 }
 

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct EvacuationPreparationView: View {
-    @StateObject private var homeViewModel = HomeViewModel()
+    @ObservedObject var homeViewModel: HomeViewModel
     @State private var animateRadar: Bool = false
     @Environment(\.dismiss) private var dismiss
     
@@ -44,7 +44,15 @@ struct EvacuationPreparationView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .onAppear {
-            startRadarAnimation()
+            // 위치 추적 시작 (권한은 CameraView에서 요청됨)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                homeViewModel.locationManager.startTracking()
+            }
+            
+            // 레이아웃이 안정화된 후 애니메이션 시작
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                startRadarAnimation()
+            }
         }
         .onTapGesture {
             dismiss()
@@ -63,5 +71,5 @@ struct EvacuationPreparationView: View {
 
 // MARK: - Preview
 #Preview {
-    EvacuationPreparationView()
+    EvacuationPreparationView(homeViewModel: HomeViewModel())
 }

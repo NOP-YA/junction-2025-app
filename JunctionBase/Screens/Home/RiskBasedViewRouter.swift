@@ -16,9 +16,9 @@ struct RiskBasedViewRouter: View {
         case .immediateEvacuation:
             EvacuationLocationView(homeViewModel: homeViewModel)
         case .evacuationPreparation:
-            EvacuationPreparationView()
+            EvacuationPreparationView(homeViewModel: homeViewModel)
         case .situationMonitoring:
-            SituationMonitoringView()
+            SituationMonitoringView(homeViewModel: homeViewModel)
         }
     }
 }
@@ -26,15 +26,16 @@ struct RiskBasedViewRouter: View {
 // MARK: - Alternative View Router with Explicit RiskLevel
 struct RiskLevelViewRouter: View {
     let riskLevel: RiskLevel
+    @StateObject private var homeViewModel = HomeViewModel()
     
     var body: some View {
         switch riskLevel {
         case .immediateEvacuation:
-            EvacuationLocationView(homeViewModel: HomeViewModel())
+            EvacuationLocationView(homeViewModel: homeViewModel)
         case .evacuationPreparation:
-            EvacuationPreparationView()
+            EvacuationPreparationView(homeViewModel: homeViewModel)
         case .situationMonitoring:
-            SituationMonitoringView()
+            SituationMonitoringView(homeViewModel: homeViewModel)
         }
     }
 }
