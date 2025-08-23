@@ -1,14 +1,14 @@
 //
-//  EvacuationLocationView.swift
+//  SituationMonitoringView.swift
 //  JunctionBase
 //
-//  Created by bear on 8/23/25.
+//  Created by AI Assistant on 8/23/25.
 //
 
 import SwiftUI
 
-struct EvacuationLocationView: View {
-    @ObservedObject var homeViewModel: HomeViewModel
+struct SituationMonitoringView: View {
+    @StateObject private var homeViewModel = HomeViewModel()
     @State private var animateRadar: Bool = false
     @Environment(\.dismiss) private var dismiss
     
@@ -20,7 +20,7 @@ struct EvacuationLocationView: View {
         
             VStack(alignment: .center, spacing: 30) {
                 // Title
-                Text(RiskLevel.immediateEvacuation.title)
+                Text(RiskLevel.situationMonitoring.title)
                     .font(.pretendardMedium28)
                     .foregroundColor(.white)
                     .padding(.top, 60)
@@ -30,7 +30,7 @@ struct EvacuationLocationView: View {
                 // Radar view
                 RadarLocationView(
                     animateRadar: $animateRadar, 
-                    riskLevel: .immediateEvacuation,
+                    riskLevel: .situationMonitoring,
                     userHeading: homeViewModel.userHeading
                 )
                 .frame(width: 400, height: 400)
@@ -38,23 +38,13 @@ struct EvacuationLocationView: View {
                 Spacer()
                 
                 // Bottom emergency text
-                EmergencyTextView(riskLevel: .immediateEvacuation)
+                EmergencyTextView(riskLevel: .situationMonitoring)
                     .padding(.bottom, 80)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .onAppear {
-            // 위치 추적 시작 (권한은 이미 ContentView에서 요청됨)
-            
-            // 약간의 딜레이 후 추적 시작 시도
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                homeViewModel.locationManager.startTracking()
-            }
-            
-            // 레이아웃이 안정화된 후 애니메이션 시작
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                startRadarAnimation()
-            }
+            startRadarAnimation()
         }
         .onTapGesture {
             dismiss()
@@ -65,15 +55,13 @@ struct EvacuationLocationView: View {
         withAnimation(
             Animation.easeInOut(duration: 2.0)
                 .repeatForever(autoreverses: true)
-                .delay(0.1) // 약간의 지연으로 안정화
         ) {
             animateRadar = true
         }
     }
 }
 
-
-
+// MARK: - Preview
 #Preview {
-    EvacuationLocationView(homeViewModel: HomeViewModel())
+    SituationMonitoringView()
 }
