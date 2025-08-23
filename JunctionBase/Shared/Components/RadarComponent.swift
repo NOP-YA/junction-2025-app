@@ -33,22 +33,29 @@ struct RadarLocationView: View {
             // Small circle
             Circle()
                 .stroke(Color.radarGray, lineWidth: 1)
-                .frame(width: 300, height: 300)
+                .frame(width: 340, height: 340)
             
             // Innermost circle
             Circle()
                 .stroke(Color.radarGray, lineWidth: 1)
-                .frame(width: 150, height: 150)
+                .frame(width: 220, height: 220)
             
-            // Danger area based on risk level (서쪽)
-            DangerAreaView(animateRadar: animateRadar, riskLevel: riskLevel)
-                .offset(dangerAreaOffset)
-                .animation(.easeInOut(duration: 0.3), value: userHeading) // 헤딩 변화시 애니메이션
+            // Danger area based on risk level (서쪽 방향으로 고정)
+            DangerAreaView(
+                animateRadar: animateRadar, 
+                riskLevel: riskLevel,
+                directionAngle: 270 // 서쪽 방향 고정 (SwiftUI 좌표계)
+            )
+            .rotationEffect(.degrees(-userHeading), anchor: .center) // 중심점 고정 회전
+            .animation(
+                .easeInOut(duration: 0.8), // 부드럽고 일관된 회전 애니메이션
+                value: userHeading
+            )
             
             // Home icon (남쪽)
             HouseIconView()
                 .offset(houseIconOffset)
-                .animation(.easeInOut(duration: 0.3), value: userHeading) // 헤딩 변화시 애니메이션
+                .animation(.easeInOut(duration: 0.8), value: userHeading) // DangerArea와 동일한 속도로 동기화
             
             // Center person icon
             PersonIconView()
@@ -58,12 +65,6 @@ struct RadarLocationView: View {
     }
     
     // MARK: - Computed Properties
-    
-    /// 위험 지역의 오프셋 (사용자 위치 기준 서쪽)
-    private var dangerAreaOffset: CGSize {
-        let westPosition = DirectionCalculator.westPosition(userHeading: userHeading)
-        return CGSize(width: westPosition.x, height: westPosition.y)
-    }
     
     /// 집 아이콘의 오프셋 (사용자 위치 기준 남쪽)
     private var houseIconOffset: CGSize {

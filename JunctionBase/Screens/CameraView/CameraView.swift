@@ -9,8 +9,11 @@ import SwiftUI
 
 struct FireCameraView: View {
     @StateObject private var cameraViewModel = CameraViewModel()
+    @StateObject private var homeViewModel = HomeViewModel()
     @State private var showCheckmark = false
     @State private var capturedImage: UIImage?
+    @State private var navigateToRiskView = false
+    @State private var calculatedRiskLevel: RiskLevel = .situationMonitoring
     
     var body: some View {
         ZStack {
@@ -55,9 +58,18 @@ struct FireCameraView: View {
             if capturedImage != nil {
                 ReportCompletionView()
             }
+            
+            // 위험도 기반 뷰 (Navigation 없이 직접 표시)
+            if navigateToRiskView {
+                destinationView(for: calculatedRiskLevel)
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.5), value: navigateToRiskView)
+            }
         }
         .onAppear {
             cameraViewModel.requestAccessAndConfigure()
+            // 위치 권한 요청 및 위험도 계산 준비
+            homeViewModel.locationManager.requestLocationPermission()
         }
         .onDisappear {
             Task {
@@ -70,11 +82,8 @@ struct FireCameraView: View {
                 capturedImage = image
                 showCheckmark = true
                 
-                // 2초 후 홈으로 돌아가기 (홈뷰 기능은 나중에 구현)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    // TODO: 홈뷰로 돌아가는 로직
-                    // NavigationController.popToRoot() 또는 dismiss() 등
-                }
+                // 촬영 완료 후 위험도 계산 및 뷰 라우팅
+                calculateRiskAndNavigate()
             }
         }
     }
@@ -85,6 +94,34 @@ struct FireCameraView: View {
         // 촬영 애니메이션
         withAnimation(.easeInOut(duration: 0.3)) {
             showCheckmark = true
+        }
+    }
+    
+    /// 위험도 계산 후 적절한 뷰로 라우팅
+    private func calculateRiskAndNavigate() {
+        // 위험도 계산 (데모 데이터 사용)
+        homeViewModel.runDemoRiskCalculation()
+        
+        // 2초 후 계산 결과 확인 및 라우팅
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            // 계산된 위험도 레벨 확인
+            self.calculatedRiskLevel = homeViewModel.riskLevel
+            
+            // 적절한 뷰로 라우팅
+            self.navigateToRiskView = true
+        }
+    }
+    
+    /// 위험도 레벨에 따른 목적지 뷰 반환
+    @ViewBuilder
+    private func destinationView(for riskLevel: RiskLevel) -> some View {
+        switch riskLevel {
+        case .situationMonitoring:
+            SituationMonitoringView(homeViewModel: homeViewModel)
+        case .evacuationPreparation:
+            EvacuationPreparationView(homeViewModel: homeViewModel)
+        case .immediateEvacuation:
+            EvacuationLocationView(homeViewModel: homeViewModel)
         }
     }
 }

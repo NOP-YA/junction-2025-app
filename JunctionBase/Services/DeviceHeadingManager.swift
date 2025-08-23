@@ -1,4 +1,4 @@
-//
+    //
 //  DeviceHeadingManager.swift
 //  JunctionBase
 //
@@ -58,7 +58,7 @@ class DeviceHeadingManager: NSObject, ObservableObject {
             self.isUpdating = false
         }
     }
-    
+     
     private func calculateHeading(from motion: CMDeviceMotion) -> Double {
         // 기기의 Z축 회전을 기반으로 방향 계산
         let attitude = motion.attitude
