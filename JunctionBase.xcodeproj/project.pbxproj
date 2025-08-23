@@ -342,7 +342,7 @@
 				BAC9B8062E55727F0008E7C6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		BAC9B8072E55727F0008E7C6 /* Build configuration list for PBXNativeTarget "JunctionBase" */ = {
 			isa = XCConfigurationList;
@@ -351,7 +351,7 @@
 				BAC9B8092E55727F0008E7C6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 
