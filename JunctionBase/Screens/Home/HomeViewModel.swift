@@ -18,13 +18,40 @@ final class HomeViewModel: ObservableObject {
     @Published var kfsIndexNorm: Double = 60.0 // demo default; 0..100
     @Published var riskCategory: KFSCategory = .low
     @Published var riskStage: KFSAlertStage = .attention
+    @Published var riskLevel: RiskLevel = .situationMonitoring
+    @Published var userHeading: Double = 0.0 // 사용자가 바라보는 방향
 
     private let azureAIService: AzureAIService
     private let firmsService = FirmsService()
+    let locationManager = LocationManager() // public으로 변경 (테스트용 접근을 위해)
+    let deviceHeadingManager = DeviceHeadingManager() // CoreMotion 기반 기기 방향 매니저
 
     init(azureAIService: AzureAIService = AzureAIService()) {
         self.azureAIService = azureAIService
+        setupLocationTracking()
     }
+    
+    private func setupLocationTracking() {
+        // DeviceHeadingManager의 deviceHeading 변경사항을 구독 (CoreMotion 기반)
+        deviceHeadingManager.$deviceHeading
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newHeading in
+                guard let self = self else { return }
+                self.userHeading = newHeading
+            }
+            .store(in: &cancellables)
+        
+        // 위치 추적 시작 (권한은 ContentView에서 요청됨)
+        
+        // 약간의 딜레이 후 추적 시작 (권한 다이얼로그가 표시될 시간)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.locationManager.startTracking()
+            // DeviceHeadingManager 시작
+            self.deviceHeadingManager.startDeviceMotionUpdates()
+        }
+    }
+    
+    private var cancellables = Set<AnyCancellable>()
 
     func sendChatRequest() {
         let trimmed = userPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -59,6 +86,7 @@ final class HomeViewModel: ObservableObject {
     private func updateDerivedStates(from index: Double) {
         let cat = kfsCategory(from: index)
         self.riskCategory = cat
+        self.riskLevel = RiskLevel.from(riskScore: index)
         switch index {
         case ...50:    self.riskStage = .attention
         case 51...65:  self.riskStage = .caution
@@ -110,9 +138,6 @@ final class HomeViewModel: ObservableObject {
         }
         // Pohang-si Buk-gu approx center
         let pohangBukgu = CLLocationCoordinate2D(latitude: 36.041, longitude: 129.365)
-        let seoul = CLLocationCoordinate2D(latitude: 37.5665, longitude: 126.9780)
-        let busan = CLLocationCoordinate2D(latitude: 35.1796, longitude: 129.0756)
-        let daegu = CLLocationCoordinate2D(latitude: 35.8714, longitude: 128.6014)
-        updateRisk(from: data, userLocation: daegu, radiusMeters: 10_000)
+        updateRisk(from: data, userLocation: pohangBukgu, radiusMeters: 10_000)
     }
 }
