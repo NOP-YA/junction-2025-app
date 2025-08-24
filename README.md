@@ -37,9 +37,13 @@ It combines **AI technology** with **citizen-driven wildfire reporting** to enab
      - Immediate Evacuation  
      - Evacuation Preparation  
      - Situation Monitoring  
-   - Provides **nearby shelter maps** and a **radar-style fire proximity view**.  
+   - Provides a **radar-style fire proximity view** to visualize danger levels.  
 
-5. **AI-Enhanced Accuracy**  
+5. **Shelter Navigation Support 🏃‍♂️**  
+   - HOTSPOT shows **nearby evacuation shelters** based on the user’s location.  
+   - By tapping a shelter, users are redirected to their default map app (Apple Maps / Google Maps) to view the **fastest route** to safety.  
+
+6. **AI-Enhanced Accuracy**  
    - Multiple user submissions refine fire location.  
    - HOTSPOT integrates **regional risk indices, FIRMS satellite data, and Azure AI** for secondary validation.  
 
@@ -67,8 +71,6 @@ By uniting rapid citizen reporting, AI-powered forecasting, and instant alerts, 
   <img src="https://github.com/user-attachments/assets/a7f93a6b-771e-456c-b7c2-14a4398f8ae1" alt="screenshot1" width="300"/>
   <img src="https://github.com/user-attachments/assets/e2d2d524-1349-49b5-8450-697f7c0e8b91" alt="screenshot2" width="300"/>
 </p>
-
-
 
 ---
 
