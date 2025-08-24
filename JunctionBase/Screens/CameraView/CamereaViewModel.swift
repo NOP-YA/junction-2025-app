@@ -205,13 +205,26 @@ final class CameraViewModel: NSObject, ObservableObject {
             print("  - 배지: \(settings.badgeSetting.rawValue)")
             
             // 3. 카테고리 설정
-            let category = UNNotificationCategory(
+            // Provide foreground action so users can reopen the app from a delivered notification.
+            let openAction = UNNotificationAction(identifier: "OPEN_APP",
+                                                  title: "열기",
+                                                  options: [.foreground])
+
+            let fireCategory = UNNotificationCategory(
                 identifier: "FIRE_ALERT",
-                actions: [],
+                actions: [openAction],
                 intentIdentifiers: [],
                 options: [.customDismissAction]
             )
-            center.setNotificationCategories([category])
+
+            let openCameraCategory = UNNotificationCategory(
+                identifier: "OPEN_CAMERA",
+                actions: [openAction],
+                intentIdentifiers: [],
+                options: [.customDismissAction]
+            )
+
+            center.setNotificationCategories([fireCategory, openCameraCategory])
             
         } catch {
             print("🔔 알림 권한 요청 에러: \(error)")
@@ -224,7 +237,7 @@ final class CameraViewModel: NSObject, ObservableObject {
             let center = UNUserNotificationCenter.current()
             let settings = await center.notificationSettings()
             guard settings.authorizationStatus == .authorized else {
-                print("🔔 알림 권한이 없습니다. 설정을 확인해주세요.")
+                print("🔔 Notifications are not allowed. Please check your settings.")
                 return
             }
 
@@ -264,21 +277,21 @@ final class CameraViewModel: NSObject, ObservableObject {
             let center = UNUserNotificationCenter.current()
             let settings = await center.notificationSettings()
             guard settings.authorizationStatus == .authorized else {
-                print("🔔 알림 권한이 없어서 위험도 알림을 보낼 수 없습니다")
+                print("🔔 Cannot send risk alerts because notification permission is not granted.")
                 return
             }
 
             let content = UNMutableNotificationContent()
-            content.title = "🔥 위험도 분석 완료"
+            content.title = "🔥 Risk Analysis Completed"
             switch riskLevel {
             case .situationMonitoring:
-                content.body = "[정보] 금일 20:35 포항시 북구 선착로 78 인근 화재 발생. 인근 지역 산불 발생. '불 보소' 앱으로 주변 상황을 제보하여 안전을 함께 지켜주세요. 최신 상황을 계속 주시 바랍니다."
+                content.body = "[Information] A fire broke out today at 20:35 near Seonchak-ro 78, Buk-gu, Pohang. A wildfire is occurring in the nearby area. Please report the surrounding situation through the “Bul Bo So” app to help ensure safety. Continue to stay updated on the latest developments."
                 content.badge = 1
             case .evacuationPreparation:
-                content.body = "[경보] 금일 20:35 포항시 북구 선착로 78 인근 화재 발생. 인근 산불 확산 중. 대피를 준비하십시오. 창문 등 안전한 곳에서 보이는 불길을 '불 보소' 앱으로 제보해주시면 진화에 큰 도움이 됩니다."
+                content.body = "[Alert] A fire broke out today at 20:35 near Seonchak-ro 78, Buk-gu, Pohang. The wildfire is spreading in the nearby area. Please prepare to evacuate. If you can see the flames safely from a place such as a window, report them through the “Bul Bo So” app to greatly assist in firefighting efforts."
                 content.badge = 2
             case .immediateEvacuation:
-                content.body = "[긴급] 금일 20:35 포항시 북구 선착로 78 인근 화재 발생. 즉시 대피하십시오! 생명에 위협이 되는 산불이 접근 중입니다."
+                content.body = "[Emergency] A fire broke out today at 20:35 near Seonchak-ro 78, Buk-gu, Pohang. Evacuate immediately! A life-threatening wildfire is approaching."
                 content.badge = 3
             }
             content.categoryIdentifier = "FIRE_ALERT"
