@@ -174,7 +174,7 @@ struct CameraOverlayView: View {
                 VStack(spacing: 24) {
                     // Safety notice (촬영 완료 시 숨김)
                     if !showCheckmark {
-                        Text("안전이 확보된 곳에서만 촬영하세요")
+                        Text("Only film from a safe location")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.8))
                     }
@@ -212,13 +212,13 @@ struct ReportCompletionView: View {
                         .foregroundColor(.white)
                 }
                 
-                Text("화재 상황이 제보되었습니다")
+                Text("A wildfire has been reported")
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                 
-                Text("관련 기관에 신속히 전달됩니다")
+                Text("Quickly reported to authorities")
                     .font(.body)
                     .foregroundColor(.white.opacity(0.8))
                     .multilineTextAlignment(.center)
@@ -368,12 +368,12 @@ struct InstructionalTextView: View {
     var body: some View {
         if !showCheckmark {
             VStack(spacing: 4) {
-                Text("화면에 표시된 화살표를 따라")
+                Text("Follow the arrow on the screen")
                     .font(.title3)
                     .fontWeight(.medium)
                     .foregroundColor(.white)
                 
-                Text("화재 방향을 맞춰주세요.")
+                Text("to align with the fire")
                     .font(.title3)
                     .fontWeight(.medium)
                     .foregroundColor(.white)
@@ -391,21 +391,18 @@ struct FireReportButton: View {
     
     var body: some View {
         Button(action: onReport) {
-            Text("화재상황 제보")
-                .font(.headline)
+            Text("Report Fire")
+                .font(.pretendardBold24)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 56)
+                .frame(height: 80)
+                .padding(.horizontal, 40)
                 .background(
-                    RoundedRectangle(cornerRadius: 28)
+                    RoundedRectangle(cornerRadius: 40)
                         .fill(isEnabled ? Color.red : Color.gray.opacity(0.6))
                 )
         }
         .disabled(!isEnabled)
-        .padding(.horizontal, 40)
-        .scaleEffect(isEnabled ? 1.0 : 0.95)
-        .animation(.easeInOut(duration: 0.2), value: isEnabled)
     }
 }
 

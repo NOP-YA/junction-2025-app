@@ -10,9 +10,9 @@ import SwiftUI
 
 /// 사용자 위치 기반 위험도 레벨
 public enum RiskLevel: String, CaseIterable {
-    case immediateEvacuation = "즉시 대피"
-    case evacuationPreparation = "대피 준비"  
-    case situationMonitoring = "상황 주시"
+    case immediateEvacuation = "Evacuate Now"
+    case evacuationPreparation = "Get Ready to Evacuate"
+    case situationMonitoring = "Stay Alert"
     
     /// 위험도 점수에 따른 레벨 결정 (KFSCategory 기준)
     public static func from(riskScore: Double) -> RiskLevel {
@@ -32,11 +32,11 @@ public enum RiskLevel: String, CaseIterable {
     public var primaryColor: Color {
         switch self {
         case .immediateEvacuation:
-            return .red
+            return Color(hex: "790000") // 진한 빨강
         case .evacuationPreparation:
-            return .orange
+            return Color(hex: "793700") // 어두운 주황
         case .situationMonitoring:
-            return .yellow
+            return Color(hex: "795D00") // 어두운 노랑
         }
     }
     
@@ -49,11 +49,11 @@ public enum RiskLevel: String, CaseIterable {
     public var description: String {
         switch self {
         case .immediateEvacuation:
-            return "지금 즉시 대피소로 이동하세요!"
+            return "Evacuate to the\n Shelter Immediately!"
         case .evacuationPreparation:
-            return "만일의 상황에 대비하세요!"
+            return "Be Prepared\nfor any Emergency!"
         case .situationMonitoring:
-            return "인근 산불 정보를 확인하세요"
+            return "Check nearby\n wildfire information."
         }
     }
     
@@ -61,11 +61,11 @@ public enum RiskLevel: String, CaseIterable {
     public var subDescription: String {
         switch self {
         case .immediateEvacuation:
-            return "계신 곳이 화재 경로에 포함되었습니다."
+            return "Your location is in the fire path"
         case .evacuationPreparation:
-            return "산불이 현재 위치로 확산될 수 있습니다."
+            return "The wildfire could reach your area"
         case .situationMonitoring:
-            return "직접 위험은 없으나 연기 유입에 주의하세요"
+            return "Safe for now, but smoke may enter"
         }
     }
     

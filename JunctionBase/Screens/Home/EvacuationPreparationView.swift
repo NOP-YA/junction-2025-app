@@ -14,16 +14,25 @@ struct EvacuationPreparationView: View {
     
     var body: some View {
         ZStack {
-            // Dark gray background to match design
-            Color(red: 0.15, green: 0.15, blue: 0.17)
+            // Background image
+            Image("EmptyBackground")
+                .resizable()
+                .scaledToFill()
                 .ignoresSafeArea()
         
-            VStack(alignment: .center, spacing: 30) {
-                // Title
+            VStack(alignment: .center, spacing: 20) {
+                // Title with circular background
                 Text(RiskLevel.evacuationPreparation.title)
-                    .font(.pretendardMedium28)
+                    .font(.pretendardBold20)
                     .foregroundColor(.white)
-                    .padding(.top, 60)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 50)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 40)
+                            .fill(RiskLevel.evacuationPreparation.primaryColor)
+                    )
+                    .padding(.top, 100)
                 
                 Spacer()
                 
@@ -39,7 +48,7 @@ struct EvacuationPreparationView: View {
                 
                 // Bottom emergency text
                 EmergencyTextView(riskLevel: .evacuationPreparation)
-                    .padding(.bottom, 80)
+                    .padding(.bottom, 160)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }

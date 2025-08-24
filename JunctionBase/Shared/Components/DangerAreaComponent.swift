@@ -16,8 +16,8 @@ struct DangerSector: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
         let center = CGPoint(x: rect.midX, y: rect.midY)
-        let baseOuterRadius = min(rect.width, rect.height) / 2
-        let innerRadius: CGFloat = 75 // 내부 반지름
+        let baseOuterRadius = min(rect.width, rect.height) / 3 // 크기 줄임
+        let innerRadius: CGFloat = 50 // 내부 반지름 줄임
         
         // 불꽃 모양을 위한 불규칙한 점들 생성
         let angleStep = (endAngle.radians - startAngle.radians) / 20 // 20개 점으로 분할
@@ -134,8 +134,8 @@ struct DangerAreaView: View {
                     Color(red: 0.4, green: 0.0, blue: 0.0, opacity: 0.3) // 안쪽: 매우 어두운 빨강
                 ],
                 center: .center,
-                startRadius: 270, // 바깥에서 시작
-                endRadius: 60     // 안쪽으로 집중
+                startRadius: 180, // 바깥에서 시작 (크기 줄임)
+                endRadius: 40     // 안쪽으로 집중 (크기 줄임)
             )
         case .evacuationPreparation:
             return RadialGradient(
@@ -148,8 +148,8 @@ struct DangerAreaView: View {
                     Color(red: 0.6, green: 0.17, blue: 0.0, opacity: 0.3) // 안쪽: 992B00 어두운 적갈색 (이미지와 동일)
                 ],
                 center: .center,
-                startRadius: 270, // 바깥에서 시작
-                endRadius: 60     // 안쪽으로 집중
+                startRadius: 180, // 바깥에서 시작 (크기 줄임)
+                endRadius: 40     // 안쪽으로 집중 (크기 줄임)
             )
         case .situationMonitoring:
             return RadialGradient(
@@ -162,8 +162,8 @@ struct DangerAreaView: View {
                     Color(red: 0.7, green: 0.4, blue: 0.1, opacity: 0.1) // 안쪽: 매우 어두운 노랑 (매우 연함)
                 ],
                 center: .center,
-                startRadius: 270, // 바깥에서 시작
-                endRadius: 60     // 안쪽으로 집중
+                startRadius: 180, // 바깥에서 시작 (크기 줄임)
+                endRadius: 40     // 안쪽으로 집중 (크기 줄임)
             )
         }
     }
@@ -180,8 +180,8 @@ struct DangerAreaView: View {
                     Color.white.opacity(0.7) // 중심: 흰색 (뜨거운 불꽃)
                 ],
                 center: .center,
-                startRadius: 120, // 바깥에서 시작
-                endRadius: 30     // 중심으로 집중
+                startRadius: 80, // 바깥에서 시작 (크기 줄임)
+                endRadius: 20    // 중심으로 집중 (크기 줄임)
             )
         case .evacuationPreparation:
             return RadialGradient(
@@ -192,8 +192,8 @@ struct DangerAreaView: View {
                     Color(red: 0.6, green: 0.17, blue: 0.0, opacity: 0.7) // 안쪽: 992B00 어두운 적갈색 (이미지와 동일)
                 ],
                 center: .center,
-                startRadius: 120, // 바깥에서 시작
-                endRadius: 30     // 중심으로 집중
+                startRadius: 80, // 바깥에서 시작 (크기 줄임)
+                endRadius: 20    // 중심으로 집중 (크기 줄임)
             )
         case .situationMonitoring:
             return RadialGradient(
@@ -204,8 +204,8 @@ struct DangerAreaView: View {
                     Color(red: 0.8, green: 0.6, blue: 0.3, opacity: 0.6) // 안쪽: 어두운 노랑 (매우 연함)
                 ],
                 center: .center,
-                startRadius: 120, // 바깥에서 시작
-                endRadius: 30     // 중심으로 집중
+                startRadius: 80, // 바깥에서 시작 (크기 줄임)
+                endRadius: 20    // 중심으로 집중 (크기 줄임)
             )
         }
     }

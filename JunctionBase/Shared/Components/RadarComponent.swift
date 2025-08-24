@@ -23,22 +23,19 @@ struct RadarLocationView: View {
             // Large circle
             Circle()
                 .stroke(Color.radarGray, lineWidth: 1)
-                .frame(width: 600, height: 600)
+                .frame(width: 335, height: 335)
             
-            // Medium circle
+            // Medium circle (두번째 원)
             Circle()
+                .fill(Color.white.opacity(0.05))
                 .stroke(Color.radarGray, lineWidth: 1)
-                .frame(width: 450, height: 450)
+                .frame(width: 247, height: 247)
             
-            // Small circle
+            // Small circle (가장 작은 원)
             Circle()
+                .fill(Color.white.opacity(0.05))
                 .stroke(Color.radarGray, lineWidth: 1)
-                .frame(width: 340, height: 340)
-            
-            // Innermost circle
-            Circle()
-                .stroke(Color.radarGray, lineWidth: 1)
-                .frame(width: 220, height: 220)
+                .frame(width: 160, height: 160)
             
             // Danger area based on risk level (서쪽 방향으로 고정)
             DangerAreaView(
