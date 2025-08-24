@@ -40,7 +40,8 @@ struct EvacuationLocationView: View {
                 RadarLocationView(
                     animateRadar: $animateRadar, 
                     riskLevel: .immediateEvacuation,
-                    userHeading: homeViewModel.userHeading
+                    userHeading: homeViewModel.userHeading,
+                    userLocation: homeViewModel.locationManager.userLocation
                 )
                 .frame(width: 400, height: 400)
                 

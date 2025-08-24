@@ -40,7 +40,8 @@ struct SituationMonitoringView: View {
                 RadarLocationView(
                     animateRadar: $animateRadar, 
                     riskLevel: .situationMonitoring,
-                    userHeading: homeViewModel.userHeading
+                    userHeading: homeViewModel.userHeading,
+                    userLocation: homeViewModel.locationManager.userLocation
                 )
                 .frame(width: 400, height: 400)
                 

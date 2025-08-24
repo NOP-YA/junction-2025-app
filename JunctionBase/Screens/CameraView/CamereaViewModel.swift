@@ -54,18 +54,7 @@ final class CameraViewModel: NSObject, ObservableObject {
         }
     }
 
-    private func sendCaptureDoneNotification() {
-        let content = UNMutableNotificationContent()
-//        content.title = "촬영 완료"
-//        content.body = "화재 상황 사진이 저장되었습니다. 필요시 추가 촬영을 진행하세요."
-        content.sound = .default
-        content.categoryIdentifier = "OPEN_CAMERA"
 
-        // 즉시 발송 (약간의 지연을 줘서 UI 전환과 겹치지 않게)
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.5, repeats: false)
-        let request = UNNotificationRequest(identifier: "capture_done_\(UUID().uuidString)", content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(request)
-    }
 
     // MARK: - Permission & configuration
     func requestAccessAndConfigure() {
@@ -189,20 +178,13 @@ final class CameraViewModel: NSObject, ObservableObject {
         // 1. 권한 먼저 요청
         do {
             let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-            print("🔔 알림 권한 요청 결과: \(granted)")
             
             if !granted {
-                print("🔔 사용자가 알림 권한을 거부했습니다")
                 return
             }
             
             // 2. 현재 설정 확인
             let settings = await center.notificationSettings()
-            print("🔔 알림 설정 상태:")
-            print("  - 권한: \(settings.authorizationStatus.rawValue)")
-            print("  - 알림: \(settings.alertSetting.rawValue)")
-            print("  - 사운드: \(settings.soundSetting.rawValue)")
-            print("  - 배지: \(settings.badgeSetting.rawValue)")
             
             // 3. 카테고리 설정
             // Provide foreground action so users can reopen the app from a delivered notification.
@@ -227,49 +209,11 @@ final class CameraViewModel: NSObject, ObservableObject {
             center.setNotificationCategories([fireCategory, openCameraCategory])
             
         } catch {
-            print("🔔 알림 권한 요청 에러: \(error)")
+            // 알림 권한 요청 실패 시 조용히 실패 처리
         }
     }
 
-    /// DEBUG-only: Schedules a very simple test local notification for verification.
-    func debugScheduleTestNotification() {
-        Task {
-            let center = UNUserNotificationCenter.current()
-            let settings = await center.notificationSettings()
-            guard settings.authorizationStatus == .authorized else {
-                print("🔔 Notifications are not allowed. Please check your settings.")
-                return
-            }
 
-            let content = UNMutableNotificationContent()
-            // content.title = "🔥 테스트 알림"
-            // content.body = "이 알림이 보이면 설정이 정상입니다! (즉시 발송)"
-            content.sound = .default
-            content.categoryIdentifier = "FIRE_ALERT"
-            content.badge = 1
-            content.threadIdentifier = "fire.alert"
-            if #available(iOS 15.0, *) {
-                content.interruptionLevel = .timeSensitive
-                if #available(iOS 16.0, *) {
-                    content.relevanceScore = 1.0
-                }
-            }
-
-            // 즉시 발송: trigger = nil
-            let request = UNNotificationRequest(
-                identifier: "debug_immediate_\(Date().timeIntervalSince1970)",
-                content: content,
-                trigger: nil
-            )
-
-            do {
-                try await center.add(request)
-                print("🔔 즉시 테스트 알림이 예약되었습니다 (id=\(request.identifier))")
-            } catch {
-                print("🔔 즉시 테스트 알림 예약 실패: \(error)")
-            }
-        }
-    }
     
     /// Sends a local notification for risk level analysis (immediate, time-sensitive)
     func sendNavigationNotification(for riskLevel: RiskLevel) {
@@ -277,21 +221,20 @@ final class CameraViewModel: NSObject, ObservableObject {
             let center = UNUserNotificationCenter.current()
             let settings = await center.notificationSettings()
             guard settings.authorizationStatus == .authorized else {
-                print("🔔 Cannot send risk alerts because notification permission is not granted.")
                 return
             }
 
             let content = UNMutableNotificationContent()
-            content.title = "🔥 Risk Analysis Completed"
+            content.title = "Wildfire Risk Alert"
             switch riskLevel {
             case .situationMonitoring:
-                content.body = "[Information] A fire broke out today at 20:35 near Seonchak-ro 78, Buk-gu, Pohang. A wildfire is occurring in the nearby area. Please report the surrounding situation through the “Bul Bo So” app to help ensure safety. Continue to stay updated on the latest developments."
+                content.body = "[Information] Wildfire reported near Seonchak-ro 78, Buk-gu, Pohang. Stay alert and report safely if possible."
                 content.badge = 1
             case .evacuationPreparation:
-                content.body = "[Alert] A fire broke out today at 20:35 near Seonchak-ro 78, Buk-gu, Pohang. The wildfire is spreading in the nearby area. Please prepare to evacuate. If you can see the flames safely from a place such as a window, report them through the “Bul Bo So” app to greatly assist in firefighting efforts."
+                content.body = "[Alert] Wildfire spreading near Seonchak-ro 78, Buk-gu, Pohang. Prepare to evacuate and follow official guidance."
                 content.badge = 2
             case .immediateEvacuation:
-                content.body = "[Emergency] A fire broke out today at 20:35 near Seonchak-ro 78, Buk-gu, Pohang. Evacuate immediately! A life-threatening wildfire is approaching."
+                content.body = "[Emergency] Wildfire near Seonchak-ro 78, Buk-gu, Pohang. Evacuate immediately to the nearest shelter."
                 content.badge = 3
             }
             content.categoryIdentifier = "FIRE_ALERT"
@@ -313,9 +256,8 @@ final class CameraViewModel: NSObject, ObservableObject {
 
             do {
                 try await center.add(request)
-                print("🔔 위험도 즉시 알림 전송 완료: \(riskLevel) (id=\(request.identifier))")
             } catch {
-                print("🔔 위험도 알림 전송 실패: \(error)")
+                // 알림 전송 실패 시 조용히 실패 처리
             }
         }
     }
@@ -414,9 +356,6 @@ extension CameraViewModel: AVCapturePhotoCaptureDelegate {
             
             self.lastPhotoData = photo.fileDataRepresentation()
             self.errorMessage = nil
-            
-            // 촬영 완료 알림 발송
-            self.sendCaptureDoneNotification()
         }
     }
 }

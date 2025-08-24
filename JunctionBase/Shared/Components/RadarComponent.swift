@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 // MARK: - Radar Location View
 struct RadarLocationView: View {
     @Binding var animateRadar: Bool
     let riskLevel: RiskLevel
     let userHeading: Double // 사용자가 바라보는 방향 (도)
+    let userLocation: CLLocationCoordinate2D? // 사용자 위치
     
     var body: some View {
         ZStack {
@@ -50,7 +52,7 @@ struct RadarLocationView: View {
             )
             
             // Home icon (남쪽)
-            HouseIconView()
+            HouseIconView(userLocation: userLocation)
                 .offset(houseIconOffset)
                 .animation(.easeInOut(duration: 0.8), value: userHeading) // DangerArea와 동일한 속도로 동기화
             
@@ -76,7 +78,8 @@ struct RadarLocationView: View {
     return RadarLocationView(
         animateRadar: $animate, 
         riskLevel: .immediateEvacuation,
-        userHeading: 0.0 // 북쪽을 바라봄
+        userHeading: 0.0, // 북쪽을 바라봄
+        userLocation: CLLocationCoordinate2D(latitude: 37.5665, longitude: 126.9780)
     )
     .background(Color.black)
 }

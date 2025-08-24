@@ -22,7 +22,6 @@ final class NotificationBridge: NSObject, UNUserNotificationCenterDelegate {
 
     /// Call once at app launch to receive notification events
     func start() {
-        print("🔔 NotificationBridge.start() - setting UNUserNotificationCenter delegate")
         UNUserNotificationCenter.current().delegate = self
     }
 
@@ -32,7 +31,6 @@ final class NotificationBridge: NSObject, UNUserNotificationCenterDelegate {
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         let id = notification.request.identifier
         let cat = notification.request.content.categoryIdentifier
-        print("🔔 willPresent called for id=\(id), category=\(cat)")
         completionHandler([.banner, .sound, .badge])
     }
 
@@ -42,7 +40,6 @@ final class NotificationBridge: NSObject, UNUserNotificationCenterDelegate {
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
         let id = response.notification.request.identifier
         let cat = response.notification.request.content.categoryIdentifier
-        print("🔔 didReceive called for id=\(id), category=\(cat)")
 
         // Reopen camera on our categories
         if cat == "OPEN_CAMERA" || cat == "FIRE_ALERT" {
