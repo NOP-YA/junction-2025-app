@@ -77,15 +77,8 @@ struct FireCameraView: View {
             cameraViewModel.requestAccessAndConfigure()
             homeViewModel.locationManager.requestLocationPermission()
 
-            // 🔔 Delegate 재설정 및 알림 셋업
             UNUserNotificationCenter.current().delegate = NotificationBridge.shared
             Task { await cameraViewModel.ensureNotificationSetup() }
-
-            #if DEBUG
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                cameraViewModel.debugScheduleTestNotification()
-            }
-            #endif
         }
         .onDisappear {
             cameraViewModel.stopSafely()
