@@ -15,60 +15,21 @@ struct EmergencyTextView: View {
         VStack(spacing: 12) {
             // Main emergency message
             Text(riskLevel.description)
-                .font(.pretendardSemiBold24)
+                .font(.pretendardBold24)
                 .foregroundColor(.white)
+                .lineLimit(3)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
                 
             // Location warning message
             Text(riskLevel.subDescription)
                 .font(.pretendardMedium20)
                 .foregroundColor(.white.opacity(0.8))
+                .lineLimit(2)
                 .multilineTextAlignment(.center)
-                
-            // Action guide icon and text
-            VStack(spacing: 8) {
-                Image(systemName: actionIconName)
-                    .font(.system(size: 44))
-                    .fontWeight(.bold)
-                    .foregroundColor(.white.opacity(0.8))
-                
-                Text(actionText)
-                    .font(.pretendardBold20)
-                    .foregroundColor(.white.opacity(0.8))
-            }
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, 40)
     }
-    
-    private var actionIconName: String {
-        switch riskLevel {
-        case .immediateEvacuation:
-            return "book.closed"
-        case .evacuationPreparation:
-            return "house.fill"
-        case .situationMonitoring:
-            return "eye.fill"
-        }
-    }
-    
-    private var actionText: String {
-        switch riskLevel {
-        case .immediateEvacuation:
-            return "행동가이드"
-        case .evacuationPreparation:
-            return "대피준비"
-        case .situationMonitoring:
-            return "상황파악"
-        }
-    }
-}
 
-// MARK: - Preview
-#Preview {
-    VStack(spacing: 50) {
-        EmergencyTextView(riskLevel: .immediateEvacuation)
-        EmergencyTextView(riskLevel: .evacuationPreparation)
-        EmergencyTextView(riskLevel: .situationMonitoring)
-    }
-    .background(Color.black)
 }
